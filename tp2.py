@@ -1,17 +1,19 @@
-import os
+
 import speech_recognition as sr
 from os import path
 import csv
+import os
 
 
 def lectura():
     datos = list()
-    directorio = os.getcwd()
-    ruta_del_archivo = os.path.join(directorio, "reclamos.csv")
-    with open(ruta_del_archivo, newline='', encoding="UTF-8") as archivo_csv:
-        csv_reader = csv.reader(archivo_csv, delimiter=',')
-        next(csv_reader) 
-        for row in csv_reader:
+    os.chdir("tp2\Grupo-5-TP2")
+    os.getcwd()
+    nombre_archivo ="reclamos.csv"
+    with open( nombre_archivo,"r") as archivo:
+        lector = csv.reader(archivo, delimiter=",")
+        next(lector, None)
+        for row in archivo:
             datos.append(row)
     print(datos)
 
