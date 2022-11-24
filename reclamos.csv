@@ -1,3 +1,3 @@
-Timestamp,Teléfono_celular,coord_lat,coord_long,ruta_foto,descripción texto,ruta_audio
-"[[20221114, 1830]]",1137842436,444647452,73553838,reclamo/foto.jpg,Auto azul marca ford estacionado en la puerta de un garaje,reclamo/audio.mp4
-"[[20221123, 2030]]",1125241013,23698547,61245876,mi_reclamo/foto.jpg,Moto mal estacionada en una esquina,mi_reclamo/audio.mp4
+Timestamp,TelÃ©fono_celular,coord_lat,coord_long,ruta_foto,descripciÃ³n texto,ruta_audio
+"2022-11-14 18:30:32",1137842436,44.4647452,7.3553838,reclamo/foto.jpg,Auto azul marca ford estacionado en la puerta de un garaje,reclamo/audio.mp4
+"2022-11-23, 20:30:25",1125241013,-23.698547,6.1245876,mi_reclamo/foto.jpg,Moto mal estacionada en una esquina,mi_reclamo/audio.mp4
