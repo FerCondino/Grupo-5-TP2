@@ -8,7 +8,7 @@ import os
 def lectura():
     datos : list[dict]=[]
     id:int=0
-    os.chdir("../TP2(2C2022)/main")
+    os.chdir("../TP2 (2C2022)/main")
     nombre_archivo ="reclamos.csv"
     with open( nombre_archivo,"r") as archivo:
         lector = csv.reader(archivo, delimiter=",")
