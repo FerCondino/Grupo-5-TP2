@@ -6,31 +6,29 @@ import os
 
 
 def lectura():
-    datos = list()
-    os.chdir("tp2\Grupo-5-TP2")
-    os.getcwd()
+    datos : list[dict]=[]
+    id:int=0
+    os.chdir("..\Grupo-5-TP2/main")
     nombre_archivo ="reclamos.csv"
     with open( nombre_archivo,"r") as archivo:
         lector = csv.reader(archivo, delimiter=",")
         next(lector, None)
         for row in archivo:
-            datos.append(row)
+            id+=1
+            row=row.split(',')
+            datos.append({'id':id,'Timestamp':row[0],'Telefono_celular':row[1],'coord_latitud':row[2],'coord_longitud':row[3],'ruta_foto':row[4],'descripcion_texto':row[5],'ruta_Audio':row[6]})
     print(datos)
 
 def transcribir_audio():
-    
+    os.chdir("audios")
     AUDIO = 'audioprueba1.wav'
 
-    AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), AUDIO)
-    sara = sr.Recognizer()
-    with sr.AudioFile(AUDIO_FILE) as source:
-        audio = sara.record(source)
+    recgnizer = sr.Recognizer()
+    with sr.AudioFile(AUDIO) as source:
+        audio = recgnizer.record(source)
 
     try:
-        # for testing purposes, we're just using the default API key
-        # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-        # instead of `r.recognize_google(audio)`
-        print("Google Speech Recognition thinks you said " + sara.recognize_google(audio))
+        print("Google Speech Recognition thinks you said " + recgnizer.recognize_google(audio))
     except sr.UnknownValueError:
         print("Google Speech Recognition could not understand audio")
     except sr.RequestError as e:
@@ -39,5 +37,5 @@ def transcribir_audio():
 
 def main():
     lectura()
-    
+    transcribir_audio()
 main()
