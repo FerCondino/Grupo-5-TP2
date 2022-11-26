@@ -7,13 +7,13 @@ import os
 def lectura(datos) -> None:
     id:int=0
     os.chdir("../TP2 (2C2022)/main")
-    nombre_archivo ="reclamos.csv"
-    with open( nombre_archivo,"r") as archivo:
+    nombre_archivo: str = "reclamos.csv"
+    with open(nombre_archivo,"r") as archivo:
         lector = csv.reader(archivo, delimiter=",")
         next(lector, None)
         for row in archivo:
             id+=1
-            row=row.split(',')
+            #row=row.split(',')
             datos.append({'id':id,'Timestamp':row[0],'Telefono_celular':row[1],'coord_latitud':row[2],'coord_longitud':row[3],'ruta_foto':row[4],'descripcion_texto':row[5],'ruta_Audio':row[6][:len(row[6])-1]})
     print(datos)
 
