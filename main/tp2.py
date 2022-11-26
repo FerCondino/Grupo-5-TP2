@@ -13,7 +13,7 @@ def lectura(datos) -> None:
         next(lector, None)
         for row in archivo:
             id+=1
-            #row=row.split(',')
+            row=row.split(',')
             datos.append({'id':id,'Timestamp':row[0],'Telefono_celular':row[1],'coord_latitud':row[2],'coord_longitud':row[3],'ruta_foto':row[4],'descripcion_texto':row[5],'ruta_Audio':row[6][:len(row[6])-1]})
     print(datos)
 
