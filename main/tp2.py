@@ -30,7 +30,6 @@ def mostrar_grafico_denuncias(denuncias:dict) -> None:
     x: list = []
     y: list = []
 
-    denuncias = {"Enero":2,"Febrero":4,"Marzo":5,"Abril":0,"Mayo":0,"Junio":6,"Julio":8,"Agosto":10,"Septiembre":0,"Octubre":1,"Noviembre":3,"Diciembre":4}
     for key,value in denuncias.items():
         x.append(key)
         y .append(value)
