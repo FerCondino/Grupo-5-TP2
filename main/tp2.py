@@ -1,15 +1,15 @@
 import csv
 import os
-import pruebaredneuronal
 import googlemaps
 import speech_recognition as sr
+from pruebaredneuronal import detectar_patente
 
 
-def lectura() -> list[dict]:
+def lectura() -> list:
     id: int = 0
     datos: list[dict] = []
     nombre_archivo = "reclamos.csv"
-    os.chdir("..\Grupo-5-TP2/main")
+#     os.chdir("..\TP2 (2C2022)\main")
 
     with open(nombre_archivo, "r") as archivo:
         lector = csv.reader(archivo, delimiter=",")
@@ -53,14 +53,15 @@ def localizacion(lat, long):
     return ubi
 
 
-def guardar_datos(datos: list) -> None:
+def guardar_datos(datos, AUTO) -> None:
     main_path = os.getcwd()
 
     archivo: str = 'BaseDenuncias.csv'
-    campos: tuple = ('Timestamp', 'Teléfono', 'Dirección_infracción', 'Localidad',
-                     'Provincia', 'patente', 'descripción_texto', 'descripción_audio')
+    campos: tuple = ('Timestamp', 'Teléfono', 'Direcc_infracción', 'Localidad',
+                     'Provincia', 'patente', 'descrip_texto', 'descrip_audio')
 
     os.chdir(main_path)
+    patente: str = detectar_patente(AUTO)
 
     with open(archivo, "w", newline='') as f:
         csv_writer = csv.writer(f, delimiter=",")
@@ -71,14 +72,13 @@ def guardar_datos(datos: list) -> None:
             long = denuncia.get('coord_longitud')
             ubi = localizacion(lat, long)
             descripcion_audio: str = transcribir_audio(denuncia)
-            patente: str = pruebaredneuronal.main()
             csv_writer.writerow((denuncia["id"], denuncia["Timestamp"], denuncia["Telefono_celular"],
-                                ubi[0], ubi[1], ubi[2], patente, denuncia["descripcion_texto"], descripcion_audio))
-
+                                ubi[0], ubi[1], ubi[2], patente.upper(), denuncia["descripcion_texto"], descripcion_audio))
 
 def main():
+    AUTO: str = 'WhatsApp Image 2022-11-28 at 20.51.11.jpg'
     datos: list[dict] = lectura()
-    guardar_datos(datos)
+    guardar_datos(datos, AUTO)
 
 
 main()
