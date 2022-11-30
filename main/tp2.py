@@ -11,7 +11,7 @@ def lectura() -> list:
     id: int = 0
     datos: list[dict] = []
     nombre_archivo = "reclamos.csv"
-    os.chdir("..\TP2 (2C2022)\main")
+    os.chdir("..\Grupo-5-TP2/main")
 
     with open(nombre_archivo, "r") as archivo:
         lector = csv.reader(archivo, delimiter=",")
@@ -100,7 +100,20 @@ def main():
     AUTO: str = 'WhatsApp Image 2022-11-28 at 20.51.11.jpg'
     datos: list[dict] = lectura()
     guardar_datos(datos, AUTO)
-    diccionario_denuncias = {"Enero":2,"Febrero":4,"Marzo":5,"Abril":0,"Mayo":0,"Junio":6,"Julio":8,"Agosto":10,"Septiembre":0,"Octubre":1,"Noviembre":3,"Diciembre":4}
+    diccionario_denuncias: dict = {
+    "Enero":0,
+    "Febrero":0,
+    "Marzo":0,
+    "Abril":0,
+    "Mayo":0,
+    "Junio":0,
+    "Julio":0,
+    "Agosto":0,
+    "Septiembre":0,
+    "Octubre":0,
+    "Noviembre":0,
+    "Diciembre":0
+    }
     mostrar_grafico_denuncias(diccionario_denuncias)
 
 
