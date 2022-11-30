@@ -146,6 +146,17 @@ def mostrar_grafico_denuncias(denuncias:dict) -> None:
     plt.plot(x,y)
     plt.show()
 
+def detectar_sospechoso(denuncias):    
+    
+    with open('robados.txt', 'r') as archivo:
+        
+        for robado in archivo:
+            for denuncia in denuncias:
+                if (denuncia.get("patente") == robado.strip()):
+                    print('------ALERTA------','\n')
+                    print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
+                    print(f'Ubicación: {denuncia.get("Direcc_infracción")}, Fecha: {denuncia.get("Timestamp")}','\n')
+                       
 def main():
     ruta_incial=os.getcwd()
 
@@ -169,5 +180,6 @@ def main():
     }
     mostrar_grafico_denuncias(diccionario_denuncias)
     infracciones_centro: list = centro_ciudad(baseDenuncia)
+    detectar_sospechoso(baseDenuncia)
 
 main()
