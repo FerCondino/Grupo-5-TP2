@@ -24,7 +24,8 @@ def lectura() -> list:
     return datos
 
 
-def transcribir_audio(datos) -> str:
+def transcribir_audio(datos,path) -> str:
+    os.chdir(path+"/audios")
     AUDIO: str = datos['ruta_Audio']
     recgnizer = sr.Recognizer()
     with sr.AudioFile(AUDIO) as source:
@@ -65,7 +66,7 @@ def localizacionUbi(baseDenuncia):
     coordenadas.append(lon)
     return coordenadas
 
-def guardar_datos(datos, AUTO) -> None:
+def guardar_datos(datos) -> None:
     main_path = os.getcwd()
 
     archivo: str = 'BaseDenuncias.csv'
@@ -73,18 +74,18 @@ def guardar_datos(datos, AUTO) -> None:
                      'Provincia', 'patente', 'ruta_foto','descrip_texto', 'descrip_audio']
 
     os.chdir(main_path)
-    patente: str = detectar_patente(AUTO)
 
     with open(archivo, "w", newline='') as f:
         csv_writer = csv.writer(f, delimiter=",")
         csv_writer.writerow(campos)
-        os.chdir("audios")
         for denuncia in datos:
             lat = denuncia.get('coord_latitud')
             long = denuncia.get('coord_longitud')
             ubi = localizacion_Lat_Long(lat, long)
-      
-            descripcion_audio: str = transcribir_audio(denuncia)
+            descripcion_audio: str = transcribir_audio(denuncia,main_path)
+
+            patente: str = detectar_patente(denuncia.get('ruta_foto'),main_path)
+
             csv_writer.writerow(( denuncia["Timestamp"], denuncia["Telefono_celular"],
                                 ubi[0], ubi[1], ubi[2], patente.upper(),denuncia["ruta_foto"], denuncia["descripcion_texto"], descripcion_audio))
 
@@ -159,10 +160,8 @@ def detectar_sospechoso(denuncias):
                        
 def main():
     ruta_incial=os.getcwd()
-
-    AUTO: str = 'WhatsApp Image 2022-11-28 at 20.51.11.jpg'
     datos: list[dict] = lectura()
-    guardar_datos(datos, AUTO)
+    guardar_datos(datos)
     baseDenuncia:list[dict]=lecturaDenuncias(ruta_incial)
     diccionario_denuncias: dict = {
     "Enero":0,

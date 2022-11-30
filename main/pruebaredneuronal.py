@@ -1,16 +1,18 @@
 import cv2
 import numpy as np
 import json
+import os
 import requests
 
 
-def detectar_auto(AUTO):
+def detectar_auto(AUTO,main_path):
     net = cv2.dnn.readNet('yolov3.cfg', 'yolov3.weights')
 
     tipo_de_objetos: list = []
     with open('coco.names', "r") as f:
         tipo_de_objetos = f.read().splitlines()
-
+    
+    os.chdir(main_path+'/fotoDenuncias')
     img = cv2.imread(AUTO)
     altura, ancho, _ = img.shape
 
@@ -61,8 +63,9 @@ def detectar_auto(AUTO):
     cv2.destroyAllWindows
     return objeto_detectado
 
-def detectar_patente(AUTO):   
-    if detectar_auto(AUTO) == 'car':
+def detectar_patente(AUTO,main_path):   
+    os.chdir(main_path)
+    if detectar_auto(AUTO,main_path) == 'car':
         regions = ['ar']
         with open(AUTO,'rb') as fp:
             response = requests.post(
