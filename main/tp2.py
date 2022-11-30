@@ -1,6 +1,7 @@
 import csv
 import os
 import googlemaps
+from geopy import distance
 import speech_recognition as sr
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,7 +55,6 @@ def localizacion(lat, long):
     ubi.append(provincia)
     return ubi
 
-
 def guardar_datos(datos, AUTO) -> None:
     main_path = os.getcwd()
 
@@ -76,6 +76,21 @@ def guardar_datos(datos, AUTO) -> None:
             descripcion_audio: str = transcribir_audio(denuncia)
             csv_writer.writerow((denuncia["id"], denuncia["Timestamp"], denuncia["Telefono_celular"],
                                 ubi[0], ubi[1], ubi[2], patente.upper(), denuncia["descripcion_texto"], descripcion_audio))
+
+def distancia_kilometro(datos):
+    bombonera = (-34.63543610792076, -58.364793559470996)   
+    monumental = (-34.544512440093, -58.449832118513015)
+
+    infracciones_kilometro: list = []
+    for denuncia in datos:
+        lat = float(denuncia.get("coord_latitud")) 
+        long = float(denuncia.get("coord_longitud"))
+        distancia_bombonera = distance.distance((lat,long), bombonera).km
+        distancia_monumental = distance.distance((lat,long), monumental).km
+        if distancia_bombonera <= 1 or distancia_monumental <= 1:
+            infracciones_kilometro.append(denuncia)
+    
+    return infracciones_kilometro
 
 def centro_ciudad(datos):
     callao_rivadavia = (-34.609011264866574, -58.39190378633095)
@@ -114,6 +129,8 @@ def mostrar_grafico_denuncias(denuncias:dict) -> None:
 def main():
     AUTO: str = 'WhatsApp Image 2022-11-28 at 20.51.11.jpg'
     datos: list[dict] = lectura()
+    infracciones_kilometro = distancia_kilometro(datos)
+    print(infracciones_kilometro)
     guardar_datos(datos, AUTO)
     diccionario_denuncias: dict = {
     "Enero":0,
@@ -132,5 +149,5 @@ def main():
     mostrar_grafico_denuncias(diccionario_denuncias)
     infracciones_centro: list = centro_ciudad(datos)
     print(infracciones_centro)
-
+    
 main()
