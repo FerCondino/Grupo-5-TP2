@@ -70,8 +70,8 @@ def guardar_datos(datos) -> None:
     main_path = os.getcwd()
 
     archivo: str = 'BaseDenuncias.csv'
-    campos: tuple = ['Timestamp', 'Teléfono', 'Direcc_infracción', 'Localidad',
-                     'Provincia', 'patente', 'ruta_foto','descrip_texto', 'descrip_audio']
+    campos: tuple = ('Timestamp', 'Teléfono', 'Direcc_infracción', 'Localidad',
+                     'Provincia', 'patente', 'ruta_foto','descrip_texto', 'descrip_audio')
 
     os.chdir(main_path)
 
