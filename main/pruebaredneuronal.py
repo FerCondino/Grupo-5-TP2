@@ -7,7 +7,7 @@ import requests
 def detectar_auto(AUTO):
     net = cv2.dnn.readNet('yolov3.cfg', 'yolov3.weights')
 
-    tipo_de_objetos = []
+    tipo_de_objetos: list = []
     with open('coco.names', "r") as f:
         tipo_de_objetos = f.read().splitlines()
 
@@ -20,9 +20,9 @@ def detectar_auto(AUTO):
     nombre_capas_salida = net.getUnconnectedOutLayersNames()
     capa_salida = net.forward(nombre_capas_salida)
 
-    boxes = []
-    confianzas = []
-    class_ids = []
+    boxes: list = []
+    confianzas: list = []
+    class_ids: list = []
 
     for salida in capa_salida:
         for deteccion in salida:
@@ -59,19 +59,19 @@ def detectar_auto(AUTO):
     cv2.imshow("Image",img)
     cv2.waitKey(0)
     cv2.destroyAllWindows
+    return objeto_detectado
 
-def detectar_patente(AUTO):
-    
-    detectar_auto(AUTO)
-    
-    regions = ['ar']
-    with open(AUTO,'rb') as fp:
-        response = requests.post(
-            'https://api.platerecognizer.com/v1/plate-reader/',
-            data =dict(regions=regions),
-            files = dict(upload=fp),
-            headers = {'Authorization':'Token f72818aea8aaa386a6d3250fdbe67a8c87835fde'})
-        patente = response.json()["results"] [0] ["plate"]
-    
-    
+def detectar_patente(AUTO):   
+    if detectar_auto(AUTO) == 'car':
+        regions = ['ar']
+        with open(AUTO,'rb') as fp:
+            response = requests.post(
+                'https://api.platerecognizer.com/v1/plate-reader/',
+                data =dict(regions=regions),
+                files = dict(upload=fp),
+                headers = {'Authorization':'Token f72818aea8aaa386a6d3250fdbe67a8c87835fde'})
+            patente = response.json()["results"] [0] ["plate"]
+        return patente
+    else:
+        print("la imagen enviada no es un auto")
     return patente
