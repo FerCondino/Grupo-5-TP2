@@ -77,6 +77,22 @@ def guardar_datos(datos, AUTO) -> None:
             csv_writer.writerow((denuncia["id"], denuncia["Timestamp"], denuncia["Telefono_celular"],
                                 ubi[0], ubi[1], ubi[2], patente.upper(), denuncia["descripcion_texto"], descripcion_audio))
 
+def centro_ciudad(datos):
+    callao_rivadavia = (-34.609011264866574, -58.39190378633095)
+    callao_cordoba = (-34.5994954103333, -58.392975888179365)
+    alem_rivadavia = (-34.60704028343274, -58.37036293050827)
+    alem_cordoba = (-34.5982236139002, -58.370915557495614)
+    
+    infracciones_centro: list = []
+    for denuncia in datos:
+        lat = float(denuncia.get("coord_latitud"))
+        long = float(denuncia.get("coord_longitud"))
+        
+        if ((lat >= callao_rivadavia[0] or lat >= alem_rivadavia[0]) and (lat <= callao_cordoba[0] or lat <= alem_cordoba[0])) and ((long >= callao_cordoba[1] or long >= callao_rivadavia[1]) and (long <= alem_rivadavia[1] or alem_cordoba
+        [1])):
+            infracciones_centro.append(denuncia)
+
+    return infracciones_centro
 
 def mostrar_grafico_denuncias(denuncias:dict) -> None:
     """
@@ -94,7 +110,6 @@ def mostrar_grafico_denuncias(denuncias:dict) -> None:
     
     plt.plot(x,y)
     plt.show()
-
 
 def main():
     AUTO: str = 'WhatsApp Image 2022-11-28 at 20.51.11.jpg'
@@ -115,6 +130,7 @@ def main():
     "Diciembre":0
     }
     mostrar_grafico_denuncias(diccionario_denuncias)
-
+    infracciones_centro: list = centro_ciudad(datos)
+    print(infracciones_centro)
 
 main()
