@@ -3,9 +3,13 @@
 Instalar pip install
 
 Installar pip install SpeechRecognition
+
 instalar pip install  -U googlemaps
+
 instalar pip install  numpy
+
 instalar pip install matplotlib
+
 instalar pip install opencv-python
 
 
