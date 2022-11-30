@@ -1,9 +1,11 @@
 import csv
+import datetime
 import os
 import googlemaps
 import speech_recognition as sr
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import *
 from pruebaredneuronal import detectar_patente
 
 
@@ -130,7 +132,7 @@ def centro_ciudad(datos):
         
     return infracciones_centro
 
-def mostrar_grafico_denuncias(denuncias:dict) -> None:
+def mostrar_grafico_denuncias(denuncias:dict,baseDenuncia) -> None:
     """
     Pre:Recibe un diccionario donde cada key es un mes del año y cada value es la cantidad de denuncias que hubo en ese mes.
         Donde los meses se guardan en una lista "x", y la cantidad de denuncias en otra lista "y"
@@ -139,11 +141,19 @@ def mostrar_grafico_denuncias(denuncias:dict) -> None:
     plt.style.use('_mpl-gallery')
     x: list = []
     y: list = []
-
-    for key,value in denuncias.items():
-        x.append(key)
-        y .append(value)
     
+    # denunciaForm= date.strptime(denuncia, "%M")
+    # print(denunciaForm)
+         
+        
+    for key,value in denuncias.items():
+        for i in baseDenuncia:
+            date=datetime(int(i.get("Timestamp").split("-")[0]),int(i.get("Timestamp").split("-")[1]),int(i.get("Timestamp").split("-")[2].split(" ")[0]))
+            formateado= date.strftime("%d %B %y").split(" ")[1]
+            if key == formateado:
+                value +=1
+        x.append(key)
+        y.append(value)
     plt.plot(x,y)
     plt.show()
 
@@ -164,20 +174,20 @@ def main():
     guardar_datos(datos)
     baseDenuncia:list[dict]=lecturaDenuncias(ruta_incial)
     diccionario_denuncias: dict = {
-    "Enero":0,
-    "Febrero":0,
-    "Marzo":0,
-    "Abril":0,
-    "Mayo":0,
-    "Junio":0,
-    "Julio":0,
-    "Agosto":0,
-    "Septiembre":0,
-    "Octubre":0,
-    "Noviembre":0,
-    "Diciembre":0
+    "January":0,
+    "February":0,
+    "March":0,
+    "April":0,
+    "May":0,
+    "June":0,
+    "July":0,
+    "August":0,
+    "September":0,
+    "October":0,
+    "November":0,
+    "December":0
     }
-    mostrar_grafico_denuncias(diccionario_denuncias)
+    mostrar_grafico_denuncias(diccionario_denuncias,baseDenuncia)
     infracciones_centro: list = centro_ciudad(baseDenuncia)
     detectar_sospechoso(baseDenuncia)
 
