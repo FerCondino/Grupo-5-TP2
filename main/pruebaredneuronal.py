@@ -56,11 +56,7 @@ def detectar_auto(AUTO,main_path):
         color = colores [i]
         cv2.rectangle(img, (x,y), (x+w, y+h), color, 2)
         cv2.putText(img, objeto_detectado + " " + coincidencia, (x, y+20), font, 2, (255,255,255), 2)
-
-
-    cv2.imshow("Image",img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows
+        
     return objeto_detectado
 
 def detectar_patente(AUTO,main_path):   

@@ -8,7 +8,16 @@ import numpy as np
 from geopy import distance
 from datetime import *
 from pruebaredneuronal import detectar_patente
-
+import cv2
+OPCIONES: tuple = (
+    "1-Listar denuncias cerca del estadio de Boca Juniors.",
+    "2-Listar denuncias cerca del estacio de River Plate.",
+    "3-Listar todas las infracciones dentro del centro de la ciudad",
+    "4-Emitir alerta por auto robado.",
+    "5-Ingresar patente.",
+    "6-Mostrar grafico de las denuncias mensuales.",
+    "7-Salir."
+)
 
 def lectura() -> list:
     id: int = 0
@@ -142,11 +151,7 @@ def mostrar_grafico_denuncias(denuncias:dict,baseDenuncia) -> None:
     plt.style.use('_mpl-gallery')
     x: list = []
     y: list = []
-    
-    # denunciaForm= date.strptime(denuncia, "%M")
-    # print(denunciaForm)
-         
-        
+             
     for key,value in denuncias.items():
         for i in baseDenuncia:
             date=datetime(int(i.get("Timestamp").split("-")[0]),int(i.get("Timestamp").split("-")[1]),int(i.get("Timestamp").split("-")[2].split(" ")[0]))
@@ -169,40 +174,85 @@ def detectar_sospechoso(denuncias):
                     print('------ALERTA------','\n')
                     print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
                     print(f'Ubicación: {denuncia.get("Direcc_infracción")}, Fecha: {denuncia.get("Timestamp")}','\n')
-def distancia_kilometro(baseDenuncia):
-    bombonera = (-34.63543610792076, -58.364793559470996)   
-    monumental = (-34.544512440093, -58.449832118513015)
-
-    infracciones_kilometro_bom: list = []
-    infracciones_kilometro_mon: list = []
-    for denuncia in baseDenuncia:
-        coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
-        lat = float(coordenadas[0])
-        long = float(coordenadas[1])
-        distancia_bombonera = distance.distance((lat,long), bombonera).km
-        distancia_monumental = distance.distance((lat,long), monumental).km
-        
-        if distancia_bombonera <= 1:
-            infracciones_kilometro_bom.append(denuncia)
-
-        elif distancia_monumental <= 1:
-            infracciones_kilometro_mon.append(denuncia)
-            
-    if(len(infracciones_kilometro_mon)>0 or len(infracciones_kilometro_bom)>0):
-        print("\n")
-        print("Se encontraron infracciones a menos de 1km de la Bombonera o del Monumental, cantidad: ",len(infracciones_kilometro_bom)+len(infracciones_kilometro_mon))
-        for i in infracciones_kilometro_bom:
-            print("En la Bombonera : Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
-        for i in infracciones_kilometro_mon:
-            print(" En el Monumental Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
+                    
+def distancia_kilometro(baseDenuncia, lugar: str):
     
-    return infracciones_kilometro_bom + infracciones_kilometro_mon
-                       
-def main():
-    ruta_incial=os.getcwd()
+    if lugar == "bombonera":
+        bombonera = (-34.63543610792076, -58.364793559470996)
+        infracciones_kilometro_bom: list = []
+        for denuncia in baseDenuncia:
+            coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+            lat = float(coordenadas[0])
+            long = float(coordenadas[1])
+            distancia_bombonera = distance.distance((lat,long), bombonera).km
+            print(distancia_bombonera)   
+            if distancia_bombonera <= 1:
+                infracciones_kilometro_bom.append(denuncia)
+
+        if(len(infracciones_kilometro_bom)>0):
+            print("\n")
+            print("Se encontraron infracciones a menos de 1km de la Bombonera, cantidad: ",len(infracciones_kilometro_bom))
+            for i in infracciones_kilometro_bom:
+                print("En la Bombonera : Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
+
+    if lugar == "monumental":   
+        monumental = (-34.544512440093, -58.449832118513015)
+        infracciones_kilometro_mon: list = []
+        for denuncia in baseDenuncia:
+            coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+            lat = float(coordenadas[0])
+            long = float(coordenadas[1])
+            distancia_monumental = distance.distance((lat,long), monumental).km
+        
+            if distancia_monumental <= 1:
+                infracciones_kilometro_mon.append(denuncia)
+            
+        if(len(infracciones_kilometro_mon)>0):
+            print("\n")
+            print("Se encontraron infracciones a menos de 1km del Monumental, cantidad: ",len(infracciones_kilometro_mon))
+            for i in infracciones_kilometro_mon:
+                print(" En el Monumental Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
+    
+def buscar_patente(baseDenuncia,ruta_inicial):
+    print(ruta_inicial)
+    os.chdir(ruta_inicial + "/fotodenuncias")
+    patente: str = input("Ingrese el numero de patente:\n")
+    patente.upper()
+    for denuncia in baseDenuncia:
+        if patente == denuncia.get("patente"):
+            #mostrar la fotografía asociada a la misma y un mapa de google con la
+            cv2.imshow("Image",denuncia["ruta_foto"])
+            cv2.waitKey(0)
+            cv2.destroyAllWindows 
+            #ubicación de la misma marcada con un punto.
+
+def validar_dato_ingresado(entrada: str) -> bool:
+    """
+    Pre:Recibe un dato ingresado por el usuario para validar si es un dato numerico
+    Post: devuelve True en caso de que sea numerico y False en caso contrario.
+    """
+    while ((entrada.isnumeric()) == False):
+        entrada = input(f"Error no ingresó un numero. Ingrese el número: ")
+    return entrada
+
+def mostrar_opciones(OPCIONES) -> None:
+    print("Menu de opciones:")
+    for x in range(len(OPCIONES)):
+        print(f"{x + 1}) {OPCIONES[x]}")
+
+def menu () -> None:
+    mostrar_opciones(OPCIONES)
+    #"1-Listar denuncias cerca del estadio de Boca Juniors.",
+    #"2-Listar denuncias cerca del estacio de River Plate.",
+    #"3-Listar todas las infracciones dentro del centro de la ciudad, dado por el cuadrante, Av. Callao, Av. Rivadavia, Av. Córdoba, Av. Alem."
+    #"4-Emitir alerta por auto robado."
+    #"5-Ingresar patente."
+    #"6-Mostrar grafico de las denuncias mensuales."
+    #"7-Salir."
+    ruta_incial = os.getcwd()
     datos: list[dict] = lectura()
     guardar_datos(datos)
-    baseDenuncia:list[dict]=lecturaDenuncias(ruta_incial)
+    baseDenuncia:list[dict] = lecturaDenuncias(ruta_incial)
     diccionario_denuncias: dict = {
     "January":0,
     "February":0,
@@ -217,9 +267,46 @@ def main():
     "November":0,
     "December":0
     }
-    mostrar_grafico_denuncias(diccionario_denuncias,baseDenuncia)
-    infracciones_centro: list = centro_ciudad(baseDenuncia)
-    infracciones_kilometro = distancia_kilometro(baseDenuncia)
-    detectar_sospechoso(baseDenuncia)
+    op: int = input("ingrese una opcion:")
+    op = int(validar_dato_ingresado(op))
+    while op > 7 or op < 1:
+        print("Error:Debe ingresar una opcion valida.")
+        mostrar_opciones(OPCIONES)
+        op = input("Ingrese una opcion valida:")
+        op = int(validar_dato_ingresado(op))
 
+    while op != 7:
+
+        if op == 1 :
+            lugar: str = "bombonera"
+            distancia_kilometro(baseDenuncia,lugar)
+
+        elif op == 2:
+            lugar: str = "monumental"
+            distancia_kilometro(baseDenuncia,lugar)
+
+        elif op == 3:
+            centro_ciudad(baseDenuncia)
+
+        elif op == 4:
+            detectar_sospechoso(baseDenuncia)  
+
+        elif op == 5:
+            buscar_patente(baseDenuncia, ruta_incial)
+
+        elif op == 6:
+            mostrar_grafico_denuncias(diccionario_denuncias,baseDenuncia)
+
+
+        mostrar_opciones(OPCIONES)
+        op = input("ingrese una opcion:")
+        op = int(validar_dato_ingresado(op))
+        while op > 7 or op < 1:
+            print("Error:Debe ingresar una opcion valida.")
+            mostrar_opciones(OPCIONES)
+            op = input("Ingrese una opcion valida:")
+            op = int(validar_dato_ingresado(op))
+    
+def main():
+    menu()   
 main()
