@@ -5,6 +5,7 @@ import googlemaps
 import speech_recognition as sr
 import matplotlib.pyplot as plt
 import numpy as np
+from geopy import distance
 from datetime import *
 from pruebaredneuronal import detectar_patente
 
@@ -122,13 +123,13 @@ def centro_ciudad(datos):
         if ((lat >= callao_rivadavia[0] or lat >= alem_rivadavia[0]) and (lat <= callao_cordoba[0] or lat <= alem_cordoba[0])) and ((long >= callao_cordoba[1] or long >= callao_rivadavia[1]) and (long <= alem_rivadavia[1] or alem_cordoba[1])):
             infracciones_centro.append(denuncia)
             
-        if(len(infracciones_centro)>0):
-            for i in infracciones_centro:
-                print("\n")
-                print("Se encontraron infracciones en el centro de la ciudad, cantidad: ",len(infracciones_centro))
-                print("Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
-        else:
-            print("No se encontraron infracciones en el centro de la ciudad")
+    if(len(infracciones_centro)>0):
+        print("\n")
+        print("Se encontraron infracciones en el centro de la ciudad, cantidad: ",len(infracciones_centro))
+        for i in infracciones_centro:
+            print("Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
+    else:
+        print("No se encontraron infracciones en el centro de la ciudad")
         
     return infracciones_centro
 
@@ -164,9 +165,38 @@ def detectar_sospechoso(denuncias):
         for robado in archivo:
             for denuncia in denuncias:
                 if (denuncia.get("patente") == robado.strip()):
+                    print("\n")
                     print('------ALERTA------','\n')
                     print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
                     print(f'Ubicación: {denuncia.get("Direcc_infracción")}, Fecha: {denuncia.get("Timestamp")}','\n')
+def distancia_kilometro(baseDenuncia):
+    bombonera = (-34.63543610792076, -58.364793559470996)   
+    monumental = (-34.544512440093, -58.449832118513015)
+
+    infracciones_kilometro_bom: list = []
+    infracciones_kilometro_mon: list = []
+    for denuncia in baseDenuncia:
+        coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+        lat = float(coordenadas[0])
+        long = float(coordenadas[1])
+        distancia_bombonera = distance.distance((lat,long), bombonera).km
+        distancia_monumental = distance.distance((lat,long), monumental).km
+        
+        if distancia_bombonera <= 1:
+            infracciones_kilometro_bom.append(denuncia)
+
+        elif distancia_monumental <= 1:
+            infracciones_kilometro_mon.append(denuncia)
+            
+    if(len(infracciones_kilometro_mon)>0 or len(infracciones_kilometro_bom)>0):
+        print("\n")
+        print("Se encontraron infracciones a menos de 1km de la Bombonera o del Monumental, cantidad: ",len(infracciones_kilometro_bom)+len(infracciones_kilometro_mon))
+        for i in infracciones_kilometro_bom:
+            print("En la Bombonera : Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
+        for i in infracciones_kilometro_mon:
+            print(" En el Monumental Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
+    
+    return infracciones_kilometro_bom + infracciones_kilometro_mon
                        
 def main():
     ruta_incial=os.getcwd()
@@ -189,6 +219,7 @@ def main():
     }
     mostrar_grafico_denuncias(diccionario_denuncias,baseDenuncia)
     infracciones_centro: list = centro_ciudad(baseDenuncia)
+    infracciones_kilometro = distancia_kilometro(baseDenuncia)
     detectar_sospechoso(baseDenuncia)
 
 main()
