@@ -9,6 +9,9 @@ from geopy import distance
 from datetime import *
 from pruebaredneuronal import detectar_patente
 import cv2
+import folium
+import webbrowser
+
 
 OPCIONES: tuple = (
     "Listar denuncias cerca del estadio de Boca Juniors.",
@@ -19,6 +22,9 @@ OPCIONES: tuple = (
     "Mostrar grafico de las denuncias mensuales.",
     "Salir."
 )
+
+GOOGLE_API_KEY: str = "AIzaSyDL9J82iDhcUWdQiuIvBYa0t5asrtz3Swk"
+
 
 def lectura() -> list:
 
@@ -71,15 +77,14 @@ def transcribir_audio(datos, path) -> None:
         print(
             "Could not request results from Google Speech Recognition service; {0}".format(e))
 
-def localizacion_Lat_Long(lat, long) -> list:
+def localizacion_lat_Long(lat, long) -> list:
     
     '''
     Obtengo una ubiación mediante una latitud y una longitud.
     Pre: Recibe dos strings.
     Post: Devuelve una lista con la ubiación que aportan ambas coordenadas.
     '''
-
-    GOOGLE_API_KEY = "AIzaSyDL9J82iDhcUWdQiuIvBYa0t5asrtz3Swk"
+    
     gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
     reverse_geocode_result = gmaps.reverse_geocode((lat, long))
     
@@ -139,11 +144,8 @@ def guardar_datos(datos) -> None:
         for denuncia in datos:
             lat: str = denuncia.get('coord_latitud')
             long: str = denuncia.get('coord_longitud')
-            ubi: list = localizacion(lat, long)
+            ubi: list = localizacion_lat_Long(lat, long)
             descripcion_audio: str = transcribir_audio(denuncia,main_path)
-            csv_writer.writerow((denuncia["id"], denuncia["Timestamp"], denuncia["Telefono_celular"],
-                                ubi[0], ubi[1], ubi[2], patente.upper(), denuncia["descripcion_texto"], descripcion_audio))
-
             patente: str = detectar_patente(denuncia.get('ruta_foto'),main_path)
 
             csv_writer.writerow(( denuncia["Timestamp"], denuncia["Telefono_celular"],
@@ -317,11 +319,24 @@ def buscar_patente(baseDenuncia) -> str:
                 cv2.imshow('ImageWindow', img)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows 
+                mostrar_en_mapa(denuncia)
                 return img
             except:
                 print("No se encontro la foto,intente mas tarde")
+                return
     print("No hay un auto robado con esa patente")
+    
+def mostrar_en_mapa(denuncia):
+    coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+    lat = float(coordenadas[0])
+    long = float(coordenadas[1])
+    mapObj = folium.Map(location = [lat,long], zoom_start = 15)
+    markerObj = folium.Marker(location = [lat,long])
+    markerObj.add_to(mapObj)
+    mapObj.save("map.html")
+    webbrowser.open("map.html", new=2) 
 
+    
 def validar_dato_ingresado(entrada: str) -> bool:
 
     """
@@ -352,8 +367,6 @@ def menu () -> None:
     Pre: No recibe nada.
     Post: No devuelve nada por ser un procedimiento.
     '''
-
-    mostrar_opciones(OPCIONES)
     #"1-Listar denuncias cerca del estadio de Boca Juniors.",
     #"2-Listar denuncias cerca del estacio de River Plate.",
     #"3-Listar todas las infracciones dentro del centro de la ciudad, dado por el cuadrante, Av. Callao, Av. Rivadavia, Av. Córdoba, Av. Alem."
@@ -379,6 +392,9 @@ def menu () -> None:
     "November":0,
     "December":0
     }
+    
+    mostrar_opciones(OPCIONES)
+    
     op: int = input("ingrese una opcion:")
     op = int(validar_dato_ingresado(op))
     while op > 7 or op < 1:
