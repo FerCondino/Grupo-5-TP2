@@ -15,21 +15,25 @@ def lectura() -> list:
     datos: list[dict] = []
     nombre_archivo = "reclamos.csv"
     os.chdir("..\Grupo-5-TP2/main")
+    try:
+        with open(nombre_archivo, "r") as archivo:
+            lector = csv.reader(archivo, delimiter=",")
+            next(lector, None)
+            for row in archivo:
+                id += 1
+                row = row.split(',')
+                datos.append({'id': id, 'Timestamp': row[0], 'Telefono_celular': row[1], 'coord_latitud': row[2],
+                            'coord_longitud': row[3], 'ruta_foto': row[4], 'descripcion_texto': row[5], 'ruta_Audio': row[6].rstrip('\n')})
+        return datos
+    except FileNotFoundError:
+        print("No se encontró el archivo de reclamos")
 
-    with open(nombre_archivo, "r") as archivo:
-        lector = csv.reader(archivo, delimiter=",")
-        next(lector, None)
-        for row in archivo:
-            id += 1
-            row = row.split(',')
-            datos.append({'id': id, 'Timestamp': row[0], 'Telefono_celular': row[1], 'coord_latitud': row[2],
-                         'coord_longitud': row[3], 'ruta_foto': row[4], 'descripcion_texto': row[5], 'ruta_Audio': row[6][:len(row[6])-1]})
-    return datos
 
 
 def transcribir_audio(datos,path) -> str:
     os.chdir(path+"/audios")
     AUDIO: str = datos['ruta_Audio']
+    print(AUDIO)
     recgnizer = sr.Recognizer()
     with sr.AudioFile(AUDIO) as source:
         audio = recgnizer.record(source)
@@ -85,6 +89,7 @@ def guardar_datos(datos) -> None:
             lat = denuncia.get('coord_latitud')
             long = denuncia.get('coord_longitud')
             ubi = localizacion_Lat_Long(lat, long)
+            print(denuncia)
             descripcion_audio: str = transcribir_audio(denuncia,main_path)
 
             patente: str = detectar_patente(denuncia.get('ruta_foto'),main_path)
@@ -169,6 +174,7 @@ def detectar_sospechoso(denuncias):
                     print('------ALERTA------','\n')
                     print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
                     print(f'Ubicación: {denuncia.get("Direcc_infracción")}, Fecha: {denuncia.get("Timestamp")}','\n')
+                    
 def distancia_kilometro(baseDenuncia):
     bombonera = (-34.63543610792076, -58.364793559470996)   
     monumental = (-34.544512440093, -58.449832118513015)
@@ -181,7 +187,6 @@ def distancia_kilometro(baseDenuncia):
         long = float(coordenadas[1])
         distancia_bombonera = distance.distance((lat,long), bombonera).km
         distancia_monumental = distance.distance((lat,long), monumental).km
-        
         if distancia_bombonera <= 1:
             infracciones_kilometro_bom.append(denuncia)
 
