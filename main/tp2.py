@@ -25,6 +25,11 @@ GOOGLE_API_KEY:str = "AIzaSyDL9J82iDhcUWdQiuIvBYa0t5asrtz3Swk"
 
 
 def lectura() -> list:
+    '''
+    Leo el archivo reclamos y lo guardo en una lista datos.
+    Pre: 
+    Post: Devuelve una lista con los datos del archivo reclamos.
+    '''
     id: int = 0
     datos: list[dict] = []
     nombre_archivo = "reclamos.csv"
@@ -45,52 +50,68 @@ def lectura() -> list:
 
 
 def transcribir_audio(datos,path) -> str:
+    '''
+    Paso a texto el audio proveniente de whatsapp.
+    Pre: Recibe la lista datos con la ruta donde está guardado el audio.
+    Post: No devuelve nada por ser solo un procedimiento.
+    '''    
+    
     os.chdir(path+"/audios")
-    AUDIO: str = datos['ruta_Audio']
+    audio_leido: str = datos['ruta_Audio']
     recgnizer = sr.Recognizer()
-    with sr.AudioFile(AUDIO) as source:
+    with sr.AudioFile(audio_leido) as source:
         audio = recgnizer.record(source)
 
     try:
-        return recgnizer.recognize_google(audio)
+        return recgnizer.recognize_google(audio,language="es-ES")
     except sr.UnknownValueError:
-        print("Google Speech Recognition could not understand audio")
+        print("El reconocimiento de voz de Google no pudo entender el audio")
     except sr.RequestError as e:
-        print(
-            "Could not request results from Google Speech Recognition service; {0}".format(e))
+        print("No se pudieron encontrar los resultados del servicio de reconocimiento de voz de Google; {0}".format(e))
 
 
-def localizacion_Lat_Long(lat, long):
+def localizacion_lat_long(lat, long) -> list:
+    '''
+    Obtengo una ubiación mediante una latitud y una longitud.
+    Pre: Recibe dos strings.
+    Post: Devuelve una lista con la ubiación que aportan ambas coordenadas.
+    '''   
     gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
     reverse_geocode_result = gmaps.reverse_geocode((lat, long))
-    ubi = []
-    direccion = reverse_geocode_result[0]['formatted_address'].replace(",", "")
-    localidad = reverse_geocode_result[0]['address_components'][2].get(
-        'long_name')
-    provincia = reverse_geocode_result[0]['address_components'][2].get(
-        'short_name')
+    ubi: list = []
+    direccion: str = reverse_geocode_result[0]['formatted_address'].replace(",", "")
+    localidad: str = reverse_geocode_result[0]['address_components'][2].get('long_name')
+    provincia: str = reverse_geocode_result[0]['address_components'][2].get('short_name')
     ubi.append(direccion)
     ubi.append(localidad)
     ubi.append(provincia)
     return ubi
 
-def localizacionUbi(baseDenuncia):
+def localizacionUbi(direccion:str) -> list:
+    '''
+    Guarda en una lista un par de coordenadas.
+    Pre: Recibe un string de una cierta dirección.
+    Post: Devuelve una lista con una latitud y una longitud.
+    '''
     gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
-    geocode_result = gmaps.geocode(baseDenuncia)
-    coordenadas = []
+    geocode_result = gmaps.geocode(direccion)
+    coordenadas:list = []
     lat = geocode_result[0]["geometry"]["location"]["lat"]
     lon = geocode_result[0]["geometry"]["location"]["lng"]
     coordenadas.append(lat)
     coordenadas.append(lon)
     return coordenadas
 
-def guardar_datos(datos) -> None:
+def guardar_datos(datos:list[dict]) -> None:
+    '''
+    Guardo los reclamos de reclamos.csv en BaseDenuncias.csv.
+    Pre: Recibe una lista datos.
+    Post: No devuelve nada por ser un procedimiento.
+    '''
     main_path = os.getcwd()
 
     archivo: str = 'BaseDenuncias.csv'
-    campos: tuple = ('Timestamp', 'Teléfono', 'Direcc_infracción', 'Localidad',
-                     'Provincia', 'patente', 'ruta_foto','descrip_texto', 'descrip_audio')
-
+    campos: tuple = ('Timestamp', 'Teléfono', 'Direcc_infracción', 'Localidad', 'Provincia', 'patente', 'ruta_foto','descrip_texto', 'descrip_audio')
     os.chdir(main_path)
 
     with open(archivo, "w", newline='') as f:
@@ -99,7 +120,7 @@ def guardar_datos(datos) -> None:
         for denuncia in datos:
             lat = denuncia.get('coord_latitud')
             long = denuncia.get('coord_longitud')
-            ubi = localizacion_Lat_Long(lat, long)
+            ubi = localizacion_lat_long(lat, long)
             descripcion_audio: str = transcribir_audio(denuncia,main_path)
 
             patente: str = detectar_patente(denuncia.get('ruta_foto'),main_path)
@@ -107,31 +128,47 @@ def guardar_datos(datos) -> None:
             csv_writer.writerow(( denuncia["Timestamp"], denuncia["Telefono_celular"],
                                 ubi[0], ubi[1], ubi[2], patente.upper(),denuncia["ruta_foto"], denuncia["descripcion_texto"], descripcion_audio))
 
-def lecturaDenuncias(ruta_inicial) -> list:
+def lectura_denuncias(ruta_inicial) -> list:
+    '''
+    Lee todas las denuncias en BaseDenuncias.csv y las guarda en una lista.
+    Pre: Recibe la ruta donde esta ubicado el archivo BaseDenuncias.
+    Post: Devuelve la lista datos con cada denuncia leida.
+    '''
     id: int = 0
     datos: list[dict] = []
-    nombre_archivo = "BaseDenuncias.csv"
+    nombre_archivo:str = "BaseDenuncias.csv"
     os.chdir(ruta_inicial+"/main")
+    
+    try:
+        with open(nombre_archivo, "r") as archivo:
+            lector = csv.reader(archivo, delimiter=",")
+            next(lector, None)
+            for row in archivo:
+                id += 1
+                row = row.split(',')
+                datos.append({'id': id, 'Timestamp': row[0], 'Teléfono': row[1], 'Direcc_infracción': row[2],
+                            'Localidad': row[3], 'Provincia': row[4],  'patente': row[5], "ruta_foto": row[6],'descrip_texto':row[7], 'descrip_audio':row[8]})
+        return datos
+    except IOError:
+        print("No se encontró el archivo BaseDenuncias. Compruebe que esta ubicado en la misma carpeta')")
+    
 
-    with open(nombre_archivo, "r") as archivo:
-        lector = csv.reader(archivo, delimiter=",")
-        next(lector, None)
-        for row in archivo:
-            id += 1
-            row = row.split(',')
-            datos.append({'id': id, 'Timestamp': row[0], 'Teléfono': row[1], 'Direcc_infracción': row[2],
-                         'Localidad': row[3], 'Provincia': row[4],  'patente': row[5], "ruta_foto": row[6],'descrip_texto':row[7], 'descrip_audio':row[8]})
-    return datos
+def centro_ciudad(datos)-> list:
 
-def centro_ciudad(datos):
-    callao_rivadavia = (-34.609011264866574, -58.39190378633095)
-    callao_cordoba = (-34.5994954103333, -58.392975888179365)
-    alem_rivadavia = (-34.60704028343274, -58.37036293050827)
-    alem_cordoba = (-34.5982236139002, -58.370915557495614)
+    '''
+    Valido que infracción se produjo dentro de un cierto cuadrante.
+    Pre: Recibe una lista datos.
+    Post: Devuelve una lista con las infracciones validas.
+    '''
+
+    callao_rivadavia:tuple = (-34.609011264866574, -58.39190378633095)
+    callao_cordoba:tuple = (-34.5994954103333, -58.392975888179365)
+    alem_rivadavia:tuple = (-34.60704028343274, -58.37036293050827)
+    alem_cordoba:tuple = (-34.5982236139002, -58.370915557495614)
     
     infracciones_centro: list = []
     for denuncia in datos:
-        coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+        coordenadas:list= localizacionUbi(denuncia["Direcc_infracción"])
         lat = float(coordenadas[0])
         long = float(coordenadas[1])
         
@@ -169,25 +206,37 @@ def mostrar_grafico_denuncias(denuncias:dict,baseDenuncia) -> None:
     plt.plot(x,y)
     plt.show()
 
-def detectar_sospechoso(denuncias):    
-    
-    with open('robados.txt', 'r') as archivo:
-        print(os.getcwd())
-        for robado in archivo:
-            for denuncia in denuncias:
-                if (denuncia.get("patente") == robado.strip()):
-                    print("\n")
-                    print('------ALERTA------','\n')
-                    print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
-                    print(f'Ubicación: {denuncia.get("Direcc_infracción")}, Fecha: {denuncia.get("Timestamp")}','\n')
-                    
-def distancia_kilometro(baseDenuncia, lugar: str):
+def detectar_sospechoso(denuncias): 
+    '''
+    Detecta patentes sospechosas y muestra por pantalla la ubicación y fecha.
+    Pre: Recibe la lista denuncias.
+    Post: No devuelve nada por ser un procedimiento.
+    '''      
+    try:
+        with open('robados.txt', 'r') as archivo:
+            print(os.getcwd())
+            for robado in archivo:
+                for denuncia in denuncias:
+                    if (denuncia.get("patente") == robado.strip()):
+                        print("\n")
+                        print('------ALERTA------','\n')
+                        print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
+                        print(f'Ubicación: {denuncia.get("Direcc_infracción")}, Fecha: {denuncia.get("Timestamp")}','\n')
+    except IOError:
+        print('No se encuentra el archivo robados.txt. Compruebe que esta ubicado en la misma carpeta')
+        
+def distancia_kilometro(baseDenuncia, lugar: str)-> None:
+    '''
+    Muestra por pantalla si hubo infracciones a 1 km del monumental o de la bombonera.
+    Pre: Recibe la lista baseDenuncia y un string lugar.
+    Post: No devuelve nada por ser un procedimiento.
+    '''
     
     if lugar == "bombonera":
-        bombonera = (-34.63543610792076, -58.364793559470996)
+        bombonera:tuple = (-34.63543610792076, -58.364793559470996)
         infracciones_kilometro_bom: list = []
         for denuncia in baseDenuncia:
-            coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+            coordenadas:list= localizacionUbi(denuncia["Direcc_infracción"])
             lat = float(coordenadas[0])
             long = float(coordenadas[1])
             distancia_bombonera = distance.distance((lat,long), bombonera).km
@@ -201,10 +250,10 @@ def distancia_kilometro(baseDenuncia, lugar: str):
                 print("En la Bombonera : Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
 
     if lugar == "monumental":   
-        monumental = (-34.544512440093, -58.449832118513015)
+        monumental:tuple = (-34.544512440093, -58.449832118513015)
         infracciones_kilometro_mon: list = []
         for denuncia in baseDenuncia:
-            coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+            coordenadas:list= localizacionUbi(denuncia["Direcc_infracción"])
             lat = float(coordenadas[0])
             long = float(coordenadas[1])
             distancia_monumental = distance.distance((lat,long), monumental).km
@@ -218,7 +267,13 @@ def distancia_kilometro(baseDenuncia, lugar: str):
             for i in infracciones_kilometro_mon:
                 print(" En el Monumental Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
     
-def buscar_patente(baseDenuncia):
+def buscar_patente(baseDenuncia)-> str:
+    '''
+    Busca en la lista baseDenuncia la patente de un auto.
+    Pre: Recibe la lista baseDenuncia.
+    Post: Devuelve el string patente si este existe, sino devuelve none.
+    '''
+
     patente: str = input("Ingrese el numero de patente:\n")
     patente.upper()
 
@@ -238,7 +293,7 @@ def buscar_patente(baseDenuncia):
                 return
     print("No hay un auto robado con esa patente")
     
-def mostrar_en_mapa(denuncia):
+def mostrar_en_mapa(denuncia)-> None:
     coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
     lat = float(coordenadas[0])
     long = float(coordenadas[1])
@@ -259,23 +314,26 @@ def validar_dato_ingresado(entrada: str) -> bool:
     return entrada
 
 def mostrar_opciones(OPCIONES) -> None:
+    '''
+    Muestra por pantalla las distintas opciones de un menú.
+    Pre: Recibe la constante OPCIONES.
+    Post: No devuelve nada por ser un procedimiento.
+    '''
+    
     print("Menu de opciones:")
     for x in range(len(OPCIONES)):
         print(f"{x + 1}) {OPCIONES[x]}")
 
 def menu () -> None:
-    mostrar_opciones(OPCIONES)
-    #"1-Listar denuncias cerca del estadio de Boca Juniors.",
-    #"2-Listar denuncias cerca del estacio de River Plate.",
-    #"3-Listar todas las infracciones dentro del centro de la ciudad, dado por el cuadrante, Av. Callao, Av. Rivadavia, Av. Córdoba, Av. Alem."
-    #"4-Emitir alerta por auto robado."
-    #"5-Ingresar patente."
-    #"6-Mostrar grafico de las denuncias mensuales."
-    #"7-Salir."
+    '''
+    Valida la opción elegida por el usuario.
+    Pre: No recibe nada.
+    Post: No devuelve nada por ser un procedimiento.
+    '''
     ruta_incial = os.getcwd()
     datos: list[dict] = lectura()
     guardar_datos(datos)
-    baseDenuncia:list[dict] = lecturaDenuncias(ruta_incial)
+    baseDenuncia:list[dict] = lectura_denuncias(ruta_incial)
     diccionario_denuncias: dict = {
     "January":0,
     "February":0,
@@ -290,6 +348,8 @@ def menu () -> None:
     "November":0,
     "December":0
     }
+    mostrar_opciones(OPCIONES)
+    
     op: int = input("ingrese una opcion:")
     op = int(validar_dato_ingresado(op))
     while op > 7 or op < 1:
@@ -303,19 +363,24 @@ def menu () -> None:
         if op == 1 :
             lugar: str = "bombonera"
             distancia_kilometro(baseDenuncia,lugar)
+            print("\n")
 
         elif op == 2:
             lugar: str = "monumental"
             distancia_kilometro(baseDenuncia,lugar)
+            print("\n")
 
         elif op == 3:
             centro_ciudad(baseDenuncia)
+            print("\n")
 
         elif op == 4:
             detectar_sospechoso(baseDenuncia)  
 
         elif op == 5:
             buscar_patente(baseDenuncia)
+            print("\n")
+
 
         elif op == 6:
             mostrar_grafico_denuncias(diccionario_denuncias,baseDenuncia)
