@@ -4,7 +4,14 @@ import json
 import requests
 
 
-def detectar_auto(AUTO):
+def detectar_auto(AUTO) -> str:
+
+    '''
+    Detecto si la foto es un auto u otra cosa.
+    Pre: Recibe la constante AUTO.
+    Post: Devuelve el str con el objeto de la foto.
+    '''
+
     net = cv2.dnn.readNet('yolov3.cfg', 'yolov3.weights')
 
     tipo_de_objetos: list = []
@@ -31,13 +38,13 @@ def detectar_auto(AUTO):
             coincidencia = puntaje[class_id]
             if coincidencia > 0.9:
                 
-                center_x = int(deteccion[0]*ancho)
-                center_y = int(deteccion[1]*altura)
-                w = int(deteccion[2]*ancho)
-                h = int(deteccion[3]*altura)
+                center_x: int = int(deteccion[0]*ancho)
+                center_y: int = int(deteccion[1]*altura)
+                w: int = int(deteccion[2]*ancho)
+                h: int = int(deteccion[3]*altura)
 
-                x = int(center_x - w/2)
-                y = int(center_y - h/2)
+                x: int = int(center_x - w/2)
+                y: int = int(center_y - h/2)
 
                 boxes.append([x, y, w, h])
                 confianzas.append((float(coincidencia)))
@@ -59,19 +66,32 @@ def detectar_auto(AUTO):
     cv2.imshow("Image",img)
     cv2.waitKey(0)
     cv2.destroyAllWindows
+
     return objeto_detectado
 
-def detectar_patente(AUTO):   
+
+def detectar_patente(AUTO) -> str:
+
+    '''
+    Detecto los caracteres de la patente del AUTO.
+    Pre: Recibe la constante AUTO.
+    Post: Devuelve un string patente.
+    '''
+
     if detectar_auto(AUTO) == 'car':
-        regions = ['ar']
+        regions: list = ['ar']
+        
         with open(AUTO,'rb') as fp:
             response = requests.post(
                 'https://api.platerecognizer.com/v1/plate-reader/',
-                data =dict(regions=regions),
+                data = dict(regions=regions),
                 files = dict(upload=fp),
                 headers = {'Authorization':'Token f72818aea8aaa386a6d3250fdbe67a8c87835fde'})
-            patente = response.json()["results"] [0] ["plate"]
+            patente: str = response.json()["results"] [0] ["plate"]
+        
         return patente
+    
     else:
         print("la imagen enviada no es un auto")
+    
     return patente

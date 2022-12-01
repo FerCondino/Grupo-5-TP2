@@ -2,6 +2,12 @@ import csv
 
 
 def leer_denuncias(denuncias) -> list:
+
+    '''
+    Lee todas las denuncias en BaseDenuncias.csv y las guarda en una lista.
+    Pre: Recibe la lista denuncias vacía.
+    Post: Devuelve la lista denuncias con cada denuncia leida.
+    '''
     
     with open('BaseDenuncias.csv', 'r') as archivo:
         csv_reader = csv.reader(archivo, delimiter = ',')
@@ -15,7 +21,13 @@ def leer_denuncias(denuncias) -> list:
     return denuncias
         
         
-def detectar_sospechoso(denuncias):    
+def detectar_sospechoso(denuncias):
+
+    '''
+    Detecta patentes sospechosas y muestra por pantalla la ubicación y fecha.
+    Pre: Recibe la lista denuncias.
+    Post: No devuelve nada por ser un procedimiento.
+    '''    
     
     with open('robados.txt', 'r') as archivo:
         

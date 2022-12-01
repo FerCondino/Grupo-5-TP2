@@ -1,22 +1,26 @@
 import csv, os
 
 
-archivo: str = 'reclamos.csv'
-campos: tuple = ('Timestamp', 'Teléfono_celular', 'coord_lat', 'coord_long',
+ARCHIVO: str = 'reclamos.csv'
+CAMPOS: tuple = ('Timestamp', 'Teléfono_celular', 'coord_lat', 'coord_long',
                      'ruta_foto', 'descripción texto', 'ruta_audio')
 
 
-def cargar_reclamos(archivo) -> list:
-    
-# Carga todos los datos del archivo en una lista y la devuelve.
+def cargar_reclamos(ARCHIVO) -> list:
+
+    '''
+    Carga todos los datos del ARCHIVO en una lista.
+    Pre: Recibe el string ARCHIVO.
+    Post: Devuelve la lista reclamos provenientes de ARCHIVO.
+    '''
 
     reclamos: list = []
     
-    if not os.path.exists(archivo):
+    if not os.path.exists(ARCHIVO):
         
         return reclamos
     
-    with open(archivo) as f:
+    with open(ARCHIVO) as f:
         
         datos_csv = csv.reader(f)
         encabezado = next(datos_csv)
@@ -29,20 +33,29 @@ def cargar_reclamos(archivo) -> list:
     return reclamos
 
 
-def guardar_reclamos(reclamos, archivo) -> None:
+def guardar_reclamos(reclamos, ARCHIVO) -> None:
+
+
+    '''
+    Guarda los reclamos en ARCHIVO.
+    Pre: Recibe la lista reclamos y el string ARCHIVO.
+    Post: No devuelve nada por ser un procedimiento.
+    '''
     
-#Guarda los reclamos en un archivo.
-    
-    with open(archivo, 'w', newline = '') as f:
+    with open(ARCHIVO, 'w', newline = '') as f:
         
         datos_csv = csv.writer(f)
-        datos_csv.writerow(campos)
+        datos_csv.writerow(CAMPOS)
         datos_csv.writerows(reclamos)
         
         
 def menu_alta(reclamos) -> None:
-    
-# Guarda un nuevo reclamo.
+
+    '''
+    Guarda un nuevo reclamo.
+    Pre: Recibe la lista reclamos.
+    Post: No devuelve nada por ser un procedimiento.
+    '''
 
     print('|||||INGRESO NUEVO RECLAMO|||||','\n')
     
@@ -65,7 +78,7 @@ def menu_alta(reclamos) -> None:
     
 def main() -> None:
     
-    reclamos: list = cargar_reclamos(archivo)
+    reclamos: list = cargar_reclamos(ARCHIVO)
     salir: bool = False
     
     
@@ -82,7 +95,7 @@ def main() -> None:
             salir = True
             
     
-    guardar_reclamos(reclamos, archivo)
+    guardar_reclamos(reclamos, ARCHIVO)
             
 
 main()
