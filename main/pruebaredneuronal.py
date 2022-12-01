@@ -1,10 +1,11 @@
 import cv2
 import numpy as np
 import json
+import os
 import requests
 
 
-def detectar_auto(AUTO) -> str:
+def detectar_auto(AUTO,main_path) -> str:
 
     '''
     Detecto si la foto es un auto u otra cosa.
@@ -17,7 +18,8 @@ def detectar_auto(AUTO) -> str:
     tipo_de_objetos: list = []
     with open('coco.names', "r") as f:
         tipo_de_objetos = f.read().splitlines()
-
+    
+    os.chdir(main_path+'/fotoDenuncias')
     img = cv2.imread(AUTO)
     altura, ancho, _ = img.shape
 
@@ -70,7 +72,7 @@ def detectar_auto(AUTO) -> str:
     return objeto_detectado
 
 
-def detectar_patente(AUTO) -> str:
+def detectar_patente(AUTO,main_path) -> str: 
 
     '''
     Detecto los caracteres de la patente del AUTO.
@@ -78,7 +80,9 @@ def detectar_patente(AUTO) -> str:
     Post: Devuelve un string patente.
     '''
 
-    if detectar_auto(AUTO) == 'car':
+    os.chdir(main_path)
+
+    if detectar_auto(AUTO, main_path) == 'car':
         regions: list = ['ar']
         
         with open(AUTO,'rb') as fp:
