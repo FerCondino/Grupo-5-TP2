@@ -10,13 +10,13 @@ from datetime import *
 from pruebaredneuronal import detectar_patente
 import cv2
 OPCIONES: tuple = (
-    "1-Listar denuncias cerca del estadio de Boca Juniors.",
-    "2-Listar denuncias cerca del estacio de River Plate.",
-    "3-Listar todas las infracciones dentro del centro de la ciudad",
-    "4-Emitir alerta por auto robado.",
-    "5-Ingresar patente.",
-    "6-Mostrar grafico de las denuncias mensuales.",
-    "7-Salir."
+    "Listar denuncias cerca del estadio de Boca Juniors.",
+    "Listar denuncias cerca del estacio de River Plate.",
+    "Listar todas las infracciones dentro del centro de la ciudad",
+    "Emitir alerta por auto robado.",
+    "Ingresar patente.",
+    "Mostrar grafico de las denuncias mensuales.",
+    "Salir."
 )
 
 def lectura() -> list:
