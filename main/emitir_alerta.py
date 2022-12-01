@@ -9,13 +9,17 @@ def leer_denuncias(denuncias) -> list:
     Post: Devuelve la lista denuncias con cada denuncia leida.
     '''
     
-    with open('BaseDenuncias.csv', 'r') as archivo:
-        csv_reader = csv.reader(archivo, delimiter = ',')
-        next(csv_reader)
-        
-        
-        for denuncia in csv_reader:
-            denuncias.append(denuncia)
+    try:
+        with open('BaseDenuncias.csv', 'r') as archivo:
+            csv_reader = csv.reader(archivo, delimiter = ',')
+            next(csv_reader)
+            
+            
+            for denuncia in csv_reader:
+                denuncias.append(denuncia)
+                
+    except IOError:
+        print('No se encuentra el archivo BaseDenuncias.csv. Compruebe que esta ubicado en la misma carpeta')
 
     
     return denuncias
@@ -29,18 +33,22 @@ def detectar_sospechoso(denuncias):
     Post: No devuelve nada por ser un procedimiento.
     '''    
     
-    with open('robados.txt', 'r') as archivo:
-        
-        for robado in archivo:
+    try:
+        with open('robado.txt', 'r') as archivo:
             
-            for denuncia in denuncias:
+            for robado in archivo:
                 
-                if (denuncia[6] == robado.strip()):
+                for denuncia in denuncias:
                     
-                    print('------ALERTA------','\n')
-                    print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
-                    print(f'Ubicación: {denuncia[4]}, Fecha: {denuncia[1]}')
-                    print()
+                    if (denuncia[6] == robado.strip()):
+                        
+                        print('------ALERTA------','\n')
+                        print('------INFRACCIÓN DE AUTO SOSPECHOSO------', '\n')
+                        print(f'Ubicación: {denuncia[4]}, Fecha: {denuncia[1]}')
+                        print()
+                        
+    except IOError:
+        print('No se encuentra el archivo robados.txt. Compruebe que esta ubicado en la misma carpeta')
                     
                        
 def main() -> None:
