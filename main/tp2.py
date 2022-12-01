@@ -9,6 +9,9 @@ from geopy import distance
 from datetime import *
 from pruebaredneuronal import detectar_patente
 import cv2
+import folium
+import webbrowser
+
 OPCIONES: tuple = (
     "Listar denuncias cerca del estadio de Boca Juniors.",
     "Listar denuncias cerca del estacio de River Plate.",
@@ -18,6 +21,8 @@ OPCIONES: tuple = (
     "Mostrar grafico de las denuncias mensuales.",
     "Salir."
 )
+GOOGLE_API_KEY:str = "AIzaSyDL9J82iDhcUWdQiuIvBYa0t5asrtz3Swk"
+
 
 def lectura() -> list:
     id: int = 0
@@ -56,7 +61,6 @@ def transcribir_audio(datos,path) -> str:
 
 
 def localizacion_Lat_Long(lat, long):
-    GOOGLE_API_KEY = "AIzaSyDL9J82iDhcUWdQiuIvBYa0t5asrtz3Swk"
     gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
     reverse_geocode_result = gmaps.reverse_geocode((lat, long))
     ubi = []
@@ -71,7 +75,6 @@ def localizacion_Lat_Long(lat, long):
     return ubi
 
 def localizacionUbi(baseDenuncia):
-    GOOGLE_API_KEY = "AIzaSyDL9J82iDhcUWdQiuIvBYa0t5asrtz3Swk"
     gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
     geocode_result = gmaps.geocode(baseDenuncia)
     coordenadas = []
@@ -228,11 +231,24 @@ def buscar_patente(baseDenuncia):
                 cv2.imshow('ImageWindow', img)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows 
+                mostrar_en_mapa(denuncia)
                 return img
             except:
                 print("No se encontro la foto,intente mas tarde")
+                return
     print("No hay un auto robado con esa patente")
+    
+def mostrar_en_mapa(denuncia):
+    coordenadas= localizacionUbi(denuncia["Direcc_infracción"])
+    lat = float(coordenadas[0])
+    long = float(coordenadas[1])
+    mapObj = folium.Map(location = [lat,long], zoom_start = 15)
+    markerObj = folium.Marker(location = [lat,long])
+    markerObj.add_to(mapObj)
+    mapObj.save("map.html")
+    webbrowser.open("map.html", new=2) 
 
+    
 def validar_dato_ingresado(entrada: str) -> bool:
     """
     Pre:Recibe un dato ingresado por el usuario para validar si es un dato numerico
