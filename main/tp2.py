@@ -42,7 +42,7 @@ def lectura() -> list:
                 id += 1
                 row = row.split(',')
                 datos.append({'id': id, 'Timestamp': row[0], 'Telefono_celular': row[1], 'coord_latitud': row[2],
-                            'coord_longitud': row[3], 'ruta_foto': row[4], 'descripcion_texto': row[5], 'ruta_Audio': row[6].rstrip('\n')})
+                            'coord_longitud': row[3], 'ruta_foto': row[4], 'descripcion_texto': row[5], 'ruta_Audio': row[6].rstrip('\n')}) 
         return datos
     except FileNotFoundError:
         print("No se encontró el archivo de reclamos")
@@ -185,7 +185,7 @@ def centro_ciudad(datos)-> list:
         
     return infracciones_centro
 
-def mostrar_grafico_denuncias(denuncias:dict,baseDenuncia) -> None:
+def mostrar_grafico_denuncias(meses:dict,baseDenuncia) -> None:
     """
     Pre:Recibe un diccionario donde cada key es un mes del año y cada value es la cantidad de denuncias que hubo en ese mes.
         Donde los meses se guardan en una lista "x", y la cantidad de denuncias en otra lista "y"
@@ -195,9 +195,10 @@ def mostrar_grafico_denuncias(denuncias:dict,baseDenuncia) -> None:
     x: list = []
     y: list = []
              
-    for key,value in denuncias.items():
+    for key,value in meses.items():
         for i in baseDenuncia:
             date=datetime(int(i.get("Timestamp").split("-")[0]),int(i.get("Timestamp").split("-")[1]),int(i.get("Timestamp").split("-")[2].split(" ")[0]))
+            print(date)
             formateado= date.strftime("%d %B %y").split(" ")[1]
             if key == formateado:
                 value +=1
@@ -248,6 +249,9 @@ def distancia_kilometro(baseDenuncia, lugar: str)-> None:
             print("Se encontraron infracciones a menos de 1km de la Bombonera, cantidad: ",len(infracciones_kilometro_bom))
             for i in infracciones_kilometro_bom:
                 print("En la Bombonera : Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
+        else:
+            print("\n")
+            print("No se encontraron infracciones a menos de 1km de la Bombonera")
 
     if lugar == "monumental":   
         monumental:tuple = (-34.544512440093, -58.449832118513015)
@@ -266,7 +270,10 @@ def distancia_kilometro(baseDenuncia, lugar: str)-> None:
             print("Se encontraron infracciones a menos de 1km del Monumental, cantidad: ",len(infracciones_kilometro_mon))
             for i in infracciones_kilometro_mon:
                 print(" En el Monumental Horario de la infraccion ", i.get("Timestamp"),"Patente", i.get("patente"),"Direccion", i.get("Direcc_infracción"))
-    
+        else:
+            print("\n")
+            print("No se encontraron infracciones a menos de 1km del Monumental")
+            
 def buscar_patente(baseDenuncia)-> str:
     '''
     Busca en la lista baseDenuncia la patente de un auto.
@@ -282,7 +289,6 @@ def buscar_patente(baseDenuncia)-> str:
             os.chdir(os.getcwd()+'/fotodenuncias')
             try:
                 img= cv2.imread(os.getcwd()+'/'+denuncia.get("ruta_foto"))
-                #mostrar la fotografía asociada a la misma y un mapa de google con la
                 cv2.imshow('ImageWindow', img)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows 
@@ -290,7 +296,7 @@ def buscar_patente(baseDenuncia)-> str:
                 return img
             except:
                 print("No se encontro la foto,intente mas tarde")
-                return
+                return None
     print("No hay un auto robado con esa patente")
     
 def mostrar_en_mapa(denuncia)-> None:

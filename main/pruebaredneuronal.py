@@ -5,7 +5,7 @@ import os
 import requests
 
 
-def detectar_auto(AUTO,main_path):
+def detectar_auto(auto,main_path):
     net = cv2.dnn.readNet('yolov3.cfg', 'yolov3.weights')
 
     tipo_de_objetos: list = []
@@ -13,9 +13,8 @@ def detectar_auto(AUTO,main_path):
         tipo_de_objetos = f.read().splitlines()
     
     os.chdir(main_path+'/fotoDenuncias')
-    img = cv2.imread(AUTO)
+    img = cv2.imread(auto)
     altura, ancho, _ = img.shape
-
     blob = cv2.dnn.blobFromImage(img, 1/255, (416, 416), (0,0,0), swapRB=True, crop=False)
     net.setInput(blob)
 
@@ -51,7 +50,7 @@ def detectar_auto(AUTO,main_path):
 
     for i in indices.flatten():
         x, y, w, h = boxes[i]
-        objeto_detectado = str(tipo_de_objetos[class_ids[i]]) #objeto_detectado es la variable que dice que objeto es.
+        objeto_detectado = str(tipo_de_objetos[class_ids[i]]) 
         coincidencia = str(round(confianzas[i],2))
         color = colores [i]
         cv2.rectangle(img, (x,y), (x+w, y+h), color, 2)
@@ -59,11 +58,11 @@ def detectar_auto(AUTO,main_path):
         
     return objeto_detectado
 
-def detectar_patente(AUTO,main_path):   
+def detectar_patente(auto,main_path):   
     os.chdir(main_path)
-    if detectar_auto(AUTO,main_path) == 'car':
+    if detectar_auto(auto,main_path) == 'car':
         regions = ['ar']
-        with open(AUTO,'rb') as fp:
+        with open(auto,'rb') as fp:
             response = requests.post(
                 'https://api.platerecognizer.com/v1/plate-reader/',
                 data =dict(regions=regions),
